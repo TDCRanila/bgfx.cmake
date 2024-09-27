@@ -85,6 +85,10 @@ if(NOT ${BGFX_CONFIG_DEFAULT_MAX_ENCODERS} STREQUAL "")
 	)
 endif()
 
+if(BGFX_WITH_WAYLAND)
+	target_compile_definitions(bgfx PRIVATE "WL_EGL_PLATFORM=1")
+endif()
+
 set(BGFX_CONFIG_OPTIONS "")
 list(
 	APPEND
@@ -216,5 +220,12 @@ if(BGFX_INSTALL)
 		RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 		INCLUDES
 		DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+	)
+
+	install(DIRECTORY ${BGFX_DIR}/include/bgfx DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+
+	# header required for shader compilation
+	install(FILES ${BGFX_DIR}/src/bgfx_shader.sh ${BGFX_DIR}/src/bgfx_compute.sh
+			DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/bgfx"
 	)
 endif()

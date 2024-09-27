@@ -33,19 +33,6 @@ function(add_bgfx_shader FILE FOLDER)
 		set(OUTPUTS_PRETTY "")
 
 		if(WIN32)
-			# dx9
-			if(NOT "${TYPE}" STREQUAL "COMPUTE")
-				set(DX9_OUTPUT ${BGFX_DIR}/examples/runtime/shaders/dx9/${FILENAME}.bin)
-				_bgfx_shaderc_parse(
-					DX9 ${COMMON} WINDOWS
-					PROFILE s_3_0
-					O 3
-					OUTPUT ${DX9_OUTPUT}
-				)
-				list(APPEND OUTPUTS "DX9")
-				set(OUTPUTS_PRETTY "${OUTPUTS_PRETTY}DX9, ")
-			endif()
-
 			# dx11
 			set(DX11_OUTPUT ${BGFX_DIR}/examples/runtime/shaders/dx11/${FILENAME}.bin)
 			if(NOT "${TYPE}" STREQUAL "COMPUTE")
@@ -78,7 +65,7 @@ function(add_bgfx_shader FILE FOLDER)
 		# essl
 		if(NOT "${TYPE}" STREQUAL "COMPUTE")
 			set(ESSL_OUTPUT ${BGFX_DIR}/examples/runtime/shaders/essl/${FILENAME}.bin)
-			_bgfx_shaderc_parse(ESSL ${COMMON} ANDROID OUTPUT ${ESSL_OUTPUT})
+			_bgfx_shaderc_parse(ESSL ${COMMON} ANDROID PROFILE 100_es OUTPUT ${ESSL_OUTPUT})
 			list(APPEND OUTPUTS "ESSL")
 			set(OUTPUTS_PRETTY "${OUTPUTS_PRETTY}ESSL, ")
 		endif()
@@ -105,7 +92,7 @@ function(add_bgfx_shader FILE FOLDER)
 
 		foreach(OUT ${OUTPUTS})
 			list(APPEND OUTPUT_FILES ${${OUT}_OUTPUT})
-			list(APPEND COMMANDS COMMAND "$<TARGET_FILE:shaderc>" ${${OUT}})
+			list(APPEND COMMANDS COMMAND "bgfx::shaderc" ${${OUT}})
 			get_filename_component(OUT_DIR ${${OUT}_OUTPUT} DIRECTORY)
 			file(MAKE_DIRECTORY ${OUT_DIR})
 		endforeach()
@@ -276,17 +263,19 @@ if(BGFX_CUSTOM_TARGETS)
 endif()
 
 # Add common library for examples
-add_example(
-	common
-	COMMON
-	DIRECTORIES
-	${BGFX_DIR}/examples/common/debugdraw
-	${BGFX_DIR}/examples/common/entry
-	${BGFX_DIR}/examples/common/font
-	${BGFX_DIR}/examples/common/imgui
-	${BGFX_DIR}/examples/common/nanovg
-	${BGFX_DIR}/examples/common/ps
-)
+if(BGFX_BUILD_EXAMPLE_COMMON)
+	add_example(
+		common
+		COMMON
+		DIRECTORIES
+		${BGFX_DIR}/examples/common/debugdraw
+		${BGFX_DIR}/examples/common/entry
+		${BGFX_DIR}/examples/common/font
+		${BGFX_DIR}/examples/common/imgui
+		${BGFX_DIR}/examples/common/nanovg
+		${BGFX_DIR}/examples/common/ps
+	)
+endif()
 
 # Only add examples if set, otherwise we still need exmaples common for tools
 if(BGFX_BUILD_EXAMPLES)

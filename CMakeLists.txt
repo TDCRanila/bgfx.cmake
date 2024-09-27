@@ -13,17 +13,13 @@ project(bgfx)
 cmake_policy(SET CMP0054 NEW)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Makefile generators on apple need this flag to compile mixed objective/c++
 if(APPLE AND NOT XCODE)
 	set(CMAKE_CXX_FLAGS "-ObjC++")
-endif()
-
-if(MSVC AND (MSVC_VERSION GREATER_EQUAL 1914))
-	add_compile_options("/Zc:__cplusplus")
 endif()
 
 include(CMakeDependentOption)
@@ -38,11 +34,16 @@ cmake_dependent_option(BGFX_BUILD_TOOLS_GEOMETRY "Build bgfx geometry tools." ON
 cmake_dependent_option(BGFX_BUILD_TOOLS_TEXTURE "Build bgfx texture tools." ON BGFX_BUILD_TOOLS OFF)
 set(BGFX_TOOLS_PREFIX "" CACHE STRING "Prefix name to add to name of tools (to avoid clashes)")
 option(BGFX_BUILD_EXAMPLES "Build bgfx examples." ON)
+cmake_dependent_option(
+	BGFX_BUILD_EXAMPLE_COMMON "Build bgfx example-common project." OFF "NOT BGFX_BUILD_EXAMPLES;NOT BGFX_BUILD_TOOLS"
+	ON
+)
 option(BGFX_BUILD_TESTS "Build bgfx tests." OFF)
 option(BGFX_INSTALL "Create installation target." ON)
 cmake_dependent_option(
 	BGFX_INSTALL_EXAMPLES "Install examples and their runtimes." OFF "BGFX_INSTALL;BGFX_BUILD_EXAMPLES" OFF
 )
+cmake_dependent_option(BGFX_WITH_WAYLAND "Use Wayland backend." ON "CMAKE_SYSTEM_NAME STREQUAL 'Linux'" OFF)
 option(BGFX_CUSTOM_TARGETS "Include convenience custom targets." ON)
 option(BGFX_CONFIG_MULTITHREADED "Build bgfx with multithreaded configuration" ON)
 option(BGFX_CONFIG_RENDERER_WEBGPU "Enable the webgpu renderer" OFF)
@@ -159,18 +160,6 @@ if(BGFX_INSTALL)
 	)
 
 	install(FILES ${BGFX_DIR}/LICENSE DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/licences/${PROJECT_NAME})
-
-	# install headers (this should be done as a target probably... ^)
-	install(DIRECTORY ${BX_DIR}/include/bx ${BX_DIR}/include/compat ${BX_DIR}/include/tinystl
-			DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-	)
-	install(DIRECTORY ${BIMG_DIR}/include/bimg DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
-	install(DIRECTORY ${BGFX_DIR}/include/bgfx DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
-
-	# header required for shader compilation
-	install(FILES ${BGFX_DIR}/src/bgfx_shader.sh ${BGFX_DIR}/src/bgfx_compute.sh
-			DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/bgfx"
-	)
 
 	# install tools
 	if(BGFX_CMAKE_USER_SCRIPT)
